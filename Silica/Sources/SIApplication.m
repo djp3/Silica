@@ -145,11 +145,17 @@ void applicationObserverCallback(AXObserverRef observer, AXUIElementRef element,
 }
 
 - (void)unobserveNotification:(CFStringRef)notification withElement:(SIAccessibilityElement *)accessibilityElement {
-    NSArray<SIApplicationObservation *> *observations = self.elementToObservations[accessibilityElement];
+    NSMutableArray<SIApplicationObservation *> *observations = self.elementToObservations[accessibilityElement];
+    NSMutableArray<SIApplicationObservation *> *removed = [NSMutableArray array];
     for (SIApplicationObservation *observation in observations) {
-        AXObserverRemoveNotification(self.observerRef, accessibilityElement.axElementRef, (__bridge CFStringRef)observation.notification);
+        if (!CFEqual((__bridge CFStringRef)observation.notification, notification)) continue;
+        AXObserverRemoveNotification(self.observerRef, accessibilityElement.axElementRef, notification);
+        [removed addObject:observation];
     }
-    [self.elementToObservations removeObjectForKey:accessibilityElement];
+    [observations removeObjectsInArray:removed];
+    if (observations.count == 0) {
+        [self.elementToObservations removeObjectForKey:accessibilityElement];
+    }
     
     if (self.elementToObservations.count == 0 && self.observerRef) {
         CFRunLoopSourceInvalidate(AXObserverGetRunLoopSource(self.observerRef));
