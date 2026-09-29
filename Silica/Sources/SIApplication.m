@@ -159,6 +159,7 @@ void applicationObserverCallback(AXObserverRef observer, AXUIElementRef element,
     
     if (self.elementToObservations.count == 0 && self.observerRef) {
         CFRunLoopSourceInvalidate(AXObserverGetRunLoopSource(self.observerRef));
+        CFRelease(self.observerRef);
         self.observerRef = nil;
     }
 }
